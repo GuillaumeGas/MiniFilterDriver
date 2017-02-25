@@ -1,0 +1,67 @@
+;
+; KmdfMiniFilter.inf
+;
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = "ActivityMonitor"
+ClassGuid   = {b86dff51-a31e-4bac-b3cf-e8cfe75c9fc2}
+Provider    = %ProviderString%
+DriverVer   = 02/09/2017,1.0.0.0
+CatalogFile = KmdfMiniFilter.cat
+
+[DestinationDirs]
+DefaultDestDir = 12
+KmdfMiniFilter.DriverFiles = 12
+
+[DefaultInstall]
+OptionDesc = %ServiceDescription%
+CopyFiles = KmdfMiniFilter.DriverFiles
+
+[DefaultInstall.Services]
+AddService = %ServiceName%,,KmdfMiniFilter.Service
+
+[DefaultUninstall]
+DelFiles   = KmdfMiniFilter.DriverFiles
+
+[DefaultUninstall.Services]
+DelService = %ServiceName%,0x200
+
+[KmdfMiniFilter.Service]
+DisplayName    = %ServiceName%
+Description    = %ServiceDescription%
+ServiceBinary  = %12%\%DriverName%.sys
+Dependencies   = "FltMgr"
+ServiceType    = 2 ;    SERVICE_FILE_SYSTEM_DRIVER
+StartType      = 3 ;    SERVICE_DEMAND_START
+ErrorControl   = 1 ;    SERVICE_ERROR_NORMAL
+LoadOrderGroup = "FSFilter Activity Monitor"
+AddReg         = KmdfMiniFilter.AddRegistry
+
+[KmdfMiniFilter.AddRegistry]
+HKR,,"DebugFlags",0x00010001 ,0x0
+HKR,,"SupportedFeatures",0x00010001,0x3
+HKR,"Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Instances\"%Instance1.Name%,"Altitude",0x00000000,%Instance1.Altitude%
+HKR,"Instances\"%Instance1.Name%,"Flags",0x00010001,%Instance1.Flags%
+
+[KmdfMiniFilter.DriverFiles]
+%DriverName%.sys
+
+[SourceDisksFiles]
+KmdfMiniFilter.sys = 1,,
+
+[SourceDisksNames]
+1 = %DiskId1%,,,
+
+[Strings]
+ProviderString     = "GUIDONO"
+ServiceDescription = "KmdfMiniFilter mini-filter driver"
+ServiceName        = "KmdfMiniFilter"
+DriverName         = "KmdfMiniFilter"
+DiskId1            = "File Change Monitoring Device Installation Disk"
+
+DefaultInstance    = "KmdfMiniFilter Instance"
+Instance1.Name     = "KmdfMiniFilter Middle Instance"
+Instance1.Altitude = "370000"
+Instance1.Flags    = 0x0 ; Automatic attachments
