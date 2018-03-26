@@ -1,20 +1,24 @@
 #include <ntifs.h>
-#include <wdf.h>
+#include <wdm.h>
 
 #include "RegistrationData.h"
 #include "MiniFilter.h"
+#include "Com.h"
 
 // Global data
 MINIFILTER_DATA MfData;
 
 DRIVER_INITIALIZE DriverEntry;
 
-NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING RegistryPath)
+NTSTATUS DriverEntry(__in PDRIVER_OBJECT DriverObject, __in PUNICODE_STRING RegistryPath)
 {
-	UNREFERENCED_PARAMETER(RegistryPath);
-	//DbgSetDebugFilterState(DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, TRUE);
-
 	NTSTATUS status;
+	PFLT_PORT port;
+	OBJECT_ATTRIBUTES attribs;
+	PSECURITY_DESCRIPTOR sd;
+	UNICODE_STRING portName = RTL_CONSTANT_STRING(L"SandboxTest");
+
+	UNREFERENCED_PARAMETER(RegistryPath);
 
 	MfData.Driver = DriverObject;
 
@@ -23,14 +27,28 @@ NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING Regi
 
 	KdPrint(("MINIFILTER INIT\n"));
 
-	if (!NT_SUCCESS(status)) {
+	if (!NT_SUCCESS(status)) 
+	{
 		KdPrint(("MINIFILTER ERROR : FltRegisterFilter failed. Code 0x%x\n", status));
 		return STATUS_UNSUCCESSFUL;
 	}
 
+	status = FltBuildDefaultSecurityDescriptor(&sd, FLT_PORT_ALL_ACCESS);
+	if (!NT_SUCCESS(status))
+		return status;
+
+	InitializeObjectAttributes(&attribs, &portName, OBJ_KERNEL_HANDLE, NULL, sd);
+	status = FltCreateCommunicationPort(MfData.Filter, &port, &attribs, NULL, ConnectNotifyCallback, DisconnectNotifyCallback, MessageNotifyCallback, 10);
+
+	if (!NT_SUCCESS(status))
+		return status;
+
+	FltFreeSecurityDescriptor(sd);
+
 	status = FltStartFiltering(MfData.Filter);
 
-	if (!NT_SUCCESS(status)) {
+	if (!NT_SUCCESS(status)) 
+	{
 		KdPrint(("MINIFILTER ERROR : FltStartFiltering faild. Code 0x%x\n", status));
 		FltUnregisterFilter(MfData.Filter);
 		return STATUS_UNSUCCESSFUL;
@@ -41,7 +59,7 @@ NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING Regi
 	return status;
 }
 
-NTSTATUS MfUnload(_In_ FLT_FILTER_UNLOAD_FLAGS Flags)
+NTSTATUS MfUnload(__in FLT_FILTER_UNLOAD_FLAGS Flags)
 {
 	UNREFERENCED_PARAMETER(Flags);
 
@@ -54,7 +72,7 @@ NTSTATUS MfUnload(_In_ FLT_FILTER_UNLOAD_FLAGS Flags)
 	return STATUS_SUCCESS;
 }
 
-NTSTATUS MfQueryTearDown(_In_ PCFLT_RELATED_OBJECTS FltObjects, _In_ FLT_INSTANCE_QUERY_TEARDOWN_FLAGS Flags)
+NTSTATUS MfQueryTearDown(__in PCFLT_RELATED_OBJECTS FltObjects, __in FLT_INSTANCE_QUERY_TEARDOWN_FLAGS Flags)
 {
 	UNREFERENCED_PARAMETER(FltObjects);
 	UNREFERENCED_PARAMETER(Flags);
