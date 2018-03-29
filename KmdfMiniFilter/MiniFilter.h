@@ -5,6 +5,7 @@
 typedef struct MINIFILTER_DATA {
 	PDRIVER_OBJECT Driver;
 	PFLT_FILTER Filter;
+	PFLT_PORT Port;
 } MINIFILTER_DATA;
 
 FLT_PREOP_CALLBACK_STATUS MfPreOperationCallback(

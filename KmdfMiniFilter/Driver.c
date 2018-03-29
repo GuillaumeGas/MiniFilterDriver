@@ -13,10 +13,9 @@ DRIVER_INITIALIZE DriverEntry;
 NTSTATUS DriverEntry(__in PDRIVER_OBJECT DriverObject, __in PUNICODE_STRING RegistryPath)
 {
 	NTSTATUS status;
-	PFLT_PORT port;
 	OBJECT_ATTRIBUTES attribs;
 	PSECURITY_DESCRIPTOR sd;
-	UNICODE_STRING portName = RTL_CONSTANT_STRING(L"SandboxTest");
+	UNICODE_STRING portName = RTL_CONSTANT_STRING(L"\\SandboxTest");
 
 	UNREFERENCED_PARAMETER(RegistryPath);
 
@@ -38,7 +37,7 @@ NTSTATUS DriverEntry(__in PDRIVER_OBJECT DriverObject, __in PUNICODE_STRING Regi
 		return status;
 
 	InitializeObjectAttributes(&attribs, &portName, OBJ_KERNEL_HANDLE, NULL, sd);
-	status = FltCreateCommunicationPort(MfData.Filter, &port, &attribs, NULL, ConnectNotifyCallback, DisconnectNotifyCallback, MessageNotifyCallback, 10);
+	status = FltCreateCommunicationPort(MfData.Filter, &MfData.Port, &attribs, NULL, ConnectNotifyCallback, DisconnectNotifyCallback, MessageNotifyCallback, 1);
 
 	if (!NT_SUCCESS(status))
 		return status;
