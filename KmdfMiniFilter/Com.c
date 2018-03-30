@@ -34,11 +34,16 @@ NTSTATUS MessageNotifyCallback (
 	)
 {
 	UNREFERENCED_PARAMETER(PortCookie);
-	UNREFERENCED_PARAMETER(InputBuffer);
-	UNREFERENCED_PARAMETER(InputBufferLength);
+	/*UNREFERENCED_PARAMETER(InputBuffer);
+	UNREFERENCED_PARAMETER(InputBufferLength);*/
 	UNREFERENCED_PARAMETER(OutputBuffer);
 	UNREFERENCED_PARAMETER(OutputBufferLength);
 	UNREFERENCED_PARAMETER(ReturnOutputBufferLength);
+
+	if (InputBuffer != NULL && InputBufferLength > 0)
+	{
+		ULONG size = InputBufferLength;
+	}
 
 	return STATUS_SUCCESS;
 }
