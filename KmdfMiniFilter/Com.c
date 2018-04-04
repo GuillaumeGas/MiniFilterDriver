@@ -1,4 +1,5 @@
 #include "Com.h"
+#include "Sandbox.h"
 
 NTSTATUS ConnectNotifyCallback (
 	__in PFLT_PORT ClientPort,
@@ -14,6 +15,8 @@ NTSTATUS ConnectNotifyCallback (
 	UNREFERENCED_PARAMETER(SizeOfContext);
 	UNREFERENCED_PARAMETER(ConnectionPortCookie);
 
+	gSandBox.state = INACTIVE;
+
 	return STATUS_SUCCESS;
 }
 
@@ -22,6 +25,9 @@ VOID DisconnectNotifyCallback (
 	)
 {
 	UNREFERENCED_PARAMETER(ConnectionCookie);
+
+	gSandBox.state = INACTIVE;
+	FreeSandBox (gSandBox);
 }
 
 NTSTATUS MessageNotifyCallback (
@@ -41,9 +47,7 @@ NTSTATUS MessageNotifyCallback (
 	UNREFERENCED_PARAMETER(ReturnOutputBufferLength);
 
 	if (InputBuffer != NULL && InputBufferLength > 0)
-	{
-		ULONG size = InputBufferLength;
-	}
+		InitSandBox ((WCHAR*)InputBuffer, InputBufferLength);
 
 	return STATUS_SUCCESS;
 }

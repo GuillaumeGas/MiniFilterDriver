@@ -21,7 +21,6 @@ int __cdecl wmain(int argc, wchar_t ** argv)
 		HRESULT result;
 		HANDLE port;
 		const wchar_t * portName = L"\\SandboxTest";
-		/*const wchar_t * targetName = argv[1];*/
 		DWORD bytesReturned;
 		UNICODE_STRING targetName;
 
@@ -43,9 +42,9 @@ int __cdecl wmain(int argc, wchar_t ** argv)
 			return -1;
 		}
 
-		printf ("> The communication port with SandboxTest is open.");
+		printf ("> The communication port with SandboxTest is open.\n");
 
-		result = FilterSendMessage (port, (LPVOID)&targetName, sizeof (targetName) + 1, NULL, 0, &bytesReturned);
+		result = FilterSendMessage (port, (LPVOID)targetName.Buffer, targetName.Length * sizeof(wchar_t), NULL, 0, &bytesReturned);
 
 		if (result != S_OK)
 		{
