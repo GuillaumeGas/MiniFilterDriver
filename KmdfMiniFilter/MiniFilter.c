@@ -1,16 +1,74 @@
 #include "MiniFilter.h"
+#include "Sandbox.h"
+#include "Utils.h"
 
 FLT_PREOP_CALLBACK_STATUS MfPreOperationCallback(
 	__in PFLT_CALLBACK_DATA Data,
 	__in PCFLT_RELATED_OBJECTS FltObjects,
-	/*_Flt_CompletionContext_Outptr_*/ PVOID *CompletionContext
+	PVOID *CompletionContext
 )
 {
-	UNREFERENCED_PARAMETER(Data);
 	UNREFERENCED_PARAMETER(FltObjects);
 	UNREFERENCED_PARAMETER(CompletionContext);
 
-	KdPrint(("MINIFILTER PreOperationCallback\n"));
+	if (gSandBox.state == ACTIVE)
+	{
+		//// We check if we have a file system miifilter callback operation
+		////if (Data->Flags & FLTFL_CALLBACK_DATA_FS_FILTER_OPERATION)
+		////{
+		//	if (IsTarget(Data->Iopb->TargetFileObject->FileName))
+		//	{
+		//		__debugbreak();
+		//		FilterPreOperation (Data->Iopb);
+		//		FltSetCallbackDataDirty(Data); // We indicate that the content of the Data structure has been modified.
+		//	}
+		////}
+
+		//NTSTATUS status;
+		//PFLT_FILE_NAME_INFORMATION fileInfo;
+
+		//status = FltGetFileNameInformation (Data, FLT_FILE_NAME_OPENED, &fileInfo);
+
+		//if (status != STATUS_SUCCESS)
+		//{
+		//	if (status == STATUS_FLT_INVALID_NAME_REQUEST)
+		//		return FLT_PREOP_SUCCESS_WITH_CALLBACK;
+		//	if (status == STATUS_INSUFFICIENT_RESOURCES)
+		//		return FLT_PREOP_SUCCESS_WITH_CALLBACK;
+		//	if (status == STATUS_INVALID_PARAMETER)
+		//		return FLT_PREOP_SUCCESS_WITH_CALLBACK;
+		//	if (status == STATUS_FLT_NAME_CACHE_MISS)
+		//		return FLT_PREOP_SUCCESS_WITH_CALLBACK;
+		//	if (status == STATUS_ACCESS_DENIED)
+		//		return FLT_PREOP_SUCCESS_WITH_CALLBACK;
+		//}
+
+		//if (IsTarget(fileInfo->Name))
+		//{
+		//	__debugbreak();
+		//	FilterPreOperation (Data->Iopb);
+		//	FltSetCallbackDataDirty(Data); // We indicate that the content of the Data structure has been modified.
+		//}
+
+		UNICODE_STRING callerFileName = {0};
+		ULONG processId = 0	;
+
+		// We retrieve the caller's process id
+		processId = FltGetRequestorProcessId (Data);
+
+		if (processId > 0)
+		{
+			if (GetProcessNameById (processId, &callerFileName))
+			{
+				GetExeNameFromFullPath (&callerFileName);
+
+				if (IsTarget (callerFileName))
+				{
+					__debugbreak();
+				}
+			}
+		}
+	}
 
 	return FLT_PREOP_SUCCESS_WITH_CALLBACK;
 }

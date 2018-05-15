@@ -7,7 +7,6 @@
 
 // Global data
 MINIFILTER_DATA MfData;
-
 DRIVER_INITIALIZE DriverEntry;
 
 NTSTATUS DriverEntry(__in PDRIVER_OBJECT DriverObject, __in PUNICODE_STRING RegistryPath)

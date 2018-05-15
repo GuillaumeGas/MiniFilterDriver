@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fltKernel.h>
 #include <wdm.h>
 #include <WinDef.h>
 
@@ -18,7 +19,14 @@ struct SandBox
 	UNICODE_STRING sandDirectoryPath;
 };
 
-struct SandBox gSandBox;
+//#ifdef __SANDBOX__
+//struct SandBox gSandBox;
+//#else
+extern struct SandBox gSandBox;
+//#endif
 
 BOOL InitSandBox (WCHAR * buffer, ULONG bufferLength);
 VOID FreeSandBox (struct SandBox sandbox);
+
+BOOL IsTarget (UNICODE_STRING targetFileName);
+VOID FilterPreOperation (PFLT_IO_PARAMETER_BLOCK ioParameter);

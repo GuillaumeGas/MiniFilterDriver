@@ -1,6 +1,9 @@
+#define __SANDBOX__
 #include "Sandbox.h"
 
-BOOL ExtractParam (WCHAR * params, unsigned int beginIndex, unsigned int endIndex, WCHAR ** dest);
+struct SandBox gSandBox;
+
+BOOL ExtractParam (WCHAR * params, unsigned int beginIndex, unsigned int endIndex, UNICODE_STRING * dest);
 
 BOOL InitSandBox (WCHAR * buffer, ULONG bufferLength)
 {
@@ -14,14 +17,14 @@ BOOL InitSandBox (WCHAR * buffer, ULONG bufferLength)
 	while (buffer[i] != ' ' && i < strLength)
 		i++;
 
-	if (ExtractParam (buffer, beginIndex, i - 1, &gSandBox.targetProcessName.Buffer) == FALSE)
+	if (ExtractParam (buffer, beginIndex, i - 1, &gSandBox.targetProcessName) == FALSE)
 		return FALSE;
 	beginIndex = i + 1;
 
 	if (beginIndex >= (strLength - 1))
 		return FALSE;
 
-	if (ExtractParam (buffer, beginIndex, strLength - 1, &gSandBox.sandDirectoryPath.Buffer) == FALSE)
+	if (ExtractParam (buffer, beginIndex, strLength - 1, &gSandBox.sandDirectoryPath) == FALSE)
 		return FALSE;
 
 	gSandBox.state = ACTIVE;
@@ -38,7 +41,7 @@ VOID FreeSandBox (struct SandBox sandbox)
 	sandbox.state = INACTIVE;
 }
 
-static BOOL ExtractParam (WCHAR * params, unsigned int beginIndex, unsigned int endIndex, WCHAR ** dest)
+static BOOL ExtractParam (WCHAR * params, unsigned int beginIndex, unsigned int endIndex, UNICODE_STRING * dest)
 {
 	unsigned int size = (endIndex - beginIndex) + 2;
 	unsigned int i = beginIndex;
@@ -47,17 +50,38 @@ static BOOL ExtractParam (WCHAR * params, unsigned int beginIndex, unsigned int 
 	if (endIndex <= beginIndex)
 		return FALSE;
 
-	*dest = (WCHAR*)ExAllocatePoolWithTag (NonPagedPool, size * sizeof(WCHAR), SB_TAG);
+	dest->Buffer = (WCHAR*)ExAllocatePoolWithTag (NonPagedPool, size * sizeof(WCHAR), SB_TAG);
 
-	if (*dest == NULL)
+	if (dest->Buffer == NULL)
 		return FALSE;
+
+	dest->Length = dest->MaximumLength = (size - 1) * sizeof (WCHAR);
 
 	for (; i <= endIndex; i++)
 	{
-		(*dest)[index++] = params[i];
+		dest->Buffer[index++] = params[i];
 	}
 
-	(*dest)[size - 1] = '\0';
+	dest->Buffer[size - 1] = '\0';
 
 	return TRUE;
+}
+
+BOOL IsTarget (UNICODE_STRING targetFileName)
+{
+	if (targetFileName.Length != gSandBox.targetProcessName.Length)
+	{
+		return FALSE;
+	} else {
+		unsigned int i = 0;
+		for (; i < (targetFileName.Length / sizeof (WCHAR)); i++)
+			if (targetFileName.Buffer[i] != gSandBox.targetProcessName.Buffer[i])
+				return FALSE;
+		return TRUE;
+	}
+}
+
+VOID FilterPreOperation (PFLT_IO_PARAMETER_BLOCK ioParameter)
+{
+	// TODO
 }

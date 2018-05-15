@@ -2,12 +2,14 @@
 #include <Fltuser.h>
 #include <stdio.h>
 #include <Subauth.h>
+#include <Shlwapi.h>
+
+#define TEST_CMD "test"
+#define TEST_FILE_PATH "C:\\tmp\\SandBoxTest.txt"
 
 void printUsage ();
 
-#define DECLARE_CONST_UNICODE_STRING(_var, _string) \
-const WCHAR _var ## _buffer[] = _string; \
-const UNICODE_STRING _var = { sizeof(_string) - sizeof(WCHAR), sizeof(_string), (PWCH) _var ## _buffer } 
+BOOL startTest ();
 
 int __cdecl wmain(int argc, wchar_t ** argv)
 {
@@ -23,6 +25,9 @@ int __cdecl wmain(int argc, wchar_t ** argv)
 		const wchar_t * portName = L"\\SandboxTest";
 		DWORD bytesReturned;
 		UNICODE_STRING targetName;
+
+		if (wcscmp (argv[1], L"test") == 0)
+			return startTest ();
 
 		targetName.Buffer = argv[1];
 		targetName.Length = wcslen (argv[1]);
@@ -66,4 +71,30 @@ int __cdecl wmain(int argc, wchar_t ** argv)
 void printUsage ()
 {
 	printf ("Usage : USandbox targetFilePath\n");
+}
+
+BOOL startTest ()
+{
+	HANDLE fileHdl = INVALID_HANDLE_VALUE;
+
+	if (PathFileExists (TEST_FILE_PATH) == TRUE)
+	{
+		if (DeleteFile (TEST_FILE_PATH) == FALSE)
+		{
+			printf ("DeleteFile() failed, error code : %d\n", GetLastError ());
+			return FALSE;
+		}
+	}
+
+	fileHdl = CreateFile(TEST_FILE_PATH, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	if (fileHdl == INVALID_HANDLE_VALUE)
+	{
+		printf ("CreateFile() failed, error code : %d\n", GetLastError ());
+		return FALSE;
+	}
+
+	CloseHandle (fileHdl);
+
+	return TRUE;
 }

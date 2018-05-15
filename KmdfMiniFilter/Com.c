@@ -15,8 +15,6 @@ NTSTATUS ConnectNotifyCallback (
 	UNREFERENCED_PARAMETER(SizeOfContext);
 	UNREFERENCED_PARAMETER(ConnectionPortCookie);
 
-	gSandBox.state = INACTIVE;
-
 	return STATUS_SUCCESS;
 }
 
@@ -25,9 +23,6 @@ VOID DisconnectNotifyCallback (
 	)
 {
 	UNREFERENCED_PARAMETER(ConnectionCookie);
-
-	gSandBox.state = INACTIVE;
-	FreeSandBox (gSandBox);
 }
 
 NTSTATUS MessageNotifyCallback (
